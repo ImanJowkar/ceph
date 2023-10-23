@@ -43,7 +43,7 @@ exit
 # add hosts
 be sure, you have to logout from `cephadm shell` before running below command
 
-go to the ssh config of `ceph01` and `ceph02` and enable root login
+go to the ssh config of `ceph02` and `ceph03` and enable root login
 ```
 vim /etc/ssh/sshd_config
 
@@ -101,5 +101,68 @@ ceph osd tree
 ceph pg ls
 ceph osd pool ls detail
 
+
+```
+
+
+# Create pool
+
+```
+ceph osd pool create block-device-pool-test
+ceph osd pool ls detail
+ceph health detail
+rbd pool init block-device-pool-test
+ceph osd pool ls detail
+rbd create --size 10G --pool block-device-pool-test vol1-test
+rbd ls --pool block-device-pool-test -l
+
+
+
+
+
+
+# create user for client access
+ceph auth add client.test mon 'allow r' osd 'allow rwx pool=block-device-pool-test'
+ceph auth get client.test
+
+# generate a config file for user to connect to ceph:
+ceph config generate-minimal-conf
+
+# copy the output of above command and store in `/etc/ceph/ceph.conf` in client machine.
+
+-----------
+ceph auth get client.test
+
+# copy the output of above command and store in `/etc/ceph/ceph.keyring` in client machine.
+
+
+
+# clinet
+# use pool on client side, go to the client and install required libraries
+
+apt search ceph-common
+sudo apt install ceph-common
+
+lsmod | grep rbd
+modprobe rbd
+
+for permenent load , add in the below file
+vim /etc/modules
+
+
+rbd -c /etc/ceph/ceph.conf -k /etc/ceph/ceph.keyring -n client.test ls --pool block-device-pool-test -l
+
+rbd -n client.test ls --pool block-device-pool-test -l
+
+rbd -n client.test device map --pool block-device-pool-test vol1-test
+lsblk
+
+create a partion with fdisk on this device, and write file-system.
+
+finally mount this partions
+mount /dev/rbd0p1 /mnt/
+df -TH
+
+dd if=/dev/random of=/mnt/file bs=100M count=30
 
 ```
