@@ -165,4 +165,34 @@ df -TH
 
 dd if=/dev/random of=/mnt/file bs=100M count=30
 
+
+
+
+
+# map permenently volume
+
+# add below content in below file: 
+
+vim /etc/ceph/rbdmap
+## ============
+block-device-pool-test/vol1-test id=test,keyring=/etc/ceph/ceph.keyring
+## ==========
+
+systemctl restart rbdmap.service
+systemctl status rbdmap.service
+
+add Below in /etc/fstab
+
+##########
+
+/dev/rbd0p1 /mnt/ ext4 noauto 0 0
+#########
+
+reboot
+mount /dev/rbd0p1 /mnt/
+
+
+
+
+
 ```
